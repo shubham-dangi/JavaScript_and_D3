@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bar chart</title>
+  <link rel="stylesheet" type="text/css" href="css/croptype.css">
+</head>
+<body>
+  <div class="container-fluid" id="top">
+    <nav class="navbar navbar-fixed-top">
+      <div class="row">
+        <div class="navbar-header col-md-12">
+          
+          <h2 align="center">Foodgrain crop type vs Production, For the year 2013</h2>
+        </div><!-- end navbar -->
+      </div><!-- end row -->
+    </nav>
+  </div><!-- end top -->
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+  <script>
+    var margin = {top: 40, right: 20, bottom: 280, left: 80},
+    width = 3500 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+    var formatPercent = d3.format(".0%");
+    var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+    var y = d3.scale.linear()
+    .range([height, 0]);
+    var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+    var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+//    .tickFormat(formatPercent);
+var tip = d3.tip()
+.attr('class', 'd3-tip')
+.offset([-10, 0])
+.html(function(d) {
+  return "<strong>Production:</strong> <span style='color:red'>" + d.Production + "</span>";
+})
+var svg = d3.select("body").append("svg")
+.attr("width", width + margin.left + margin.right)
+.attr("height", height + margin.top + margin.bottom)
+.append("g")
+.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+svg.call(tip); 
+d3.json('json/FoodgrainsCrop.json', function(error, data) {
+  x.domain(data.map(function(d) { return d.particulars; }));
+  y.domain([0, d3.max(data, function(d) { return +d.Production; })]);
+
+//Append our x-axis
+svg.append("g")
+.attr("class", "x axis")
+.attr("transform", "translate(0," + height + ")")
+.call(xAxis)
+.selectAll("text")
+.style("text-anchor", "end")
+.attr("dx", "-.8em")
+.attr("dy", "-.25em")
+.attr("transform", "rotate(-80)" );
+
+  // svg.append("g")
+  //     .attr("class", "x axis")
+  //     .attr("transform", "translate(0," + height + ")")
+  //     .call(xAxis)
+  //     .append("text")
+  //     // .attr("x", 550)
+  //     // .attr("y", 27)
+  //     .selectAll("text")
+  //     .attr("transform", "rotate(-60)")
+  //     .attr("dx", "-.8em")
+  //     .attr("dy", ".25em")
+  //     .style("text-anchor", "end")
+  //     .text("CropType");
+
+  svg.append("g")
+  .attr("class", "y axis")
+  .call(yAxis)
+  .append("text")
+  .attr("transform", "rotate(-90)")
+  .attr("y", "-6em")
+  .attr("dy", ".25em")
+  .style("text-anchor", "end")
+  .text("Production");
+
+  svg.selectAll(".bar")
+  .data(data)
+  .enter().append("rect")
+  .attr("class", "bar")
+  .attr("x", function(d) { return x(d.particulars); })
+  .attr("width", x.rangeBand())
+  .attr("y", function(d) { return y(+d.Production); })
+  .attr("height", function(d) { return height - y(+d.Production); })
+  .on('mouseover', tip.show)
+  .on('mouseout', tip.hide)
+  .transition().duration(3000)
+  .delay(function(d,i){
+    return i*200;
+  })
+});
+</script>
+</body>
+</html>
